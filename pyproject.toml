@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crypto-hardware-accel-aesni-engine"
+version = "2.0.0"
+description = "AES-NI & ARMv8-CE Hardware Cryptographic Acceleration Auditor"
+readme = "README.md"
+authors = [{ name = "Dr. Abu Suraih Sakhri", email = "abusuraih@example.com" }]
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Security/Cryptography",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+crypto-hardware-accel-aesni-engine = "crypto_accel_aesni.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/abusuraihsakhri/crypto-hardware-accel-aesni-engine"
+Repository = "https://github.com/abusuraihsakhri/crypto-hardware-accel-aesni-engine.git"
