@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
-from agents.base import PHIGuard, AuditLogger, SecurityException
+from agents.base import PHIGuard, AuditLogger, SecurityException, ValidationException, validate_identifier
 from agents.models import SystemTaskPayload, UrgencyLevel, SystemIntegrityStatus
 from agents.workers import InvariantQCWorker, SafetyEscalationWorker, ProtocolConformanceWorker
 from agents.supervisor import SystemSupervisor
@@ -63,3 +63,56 @@ def test_supervisor_consensus_and_audit():
     assert main(["audit", "--task-id", "CLI-TEST-01"]) == 0
     assert main(["chat", "Explain", "specifications"]) == 0
     assert main(["verify-audit"]) == 0
+
+
+def test_input_validation():
+    """Test that identifier validation works correctly."""
+    # Valid identifiers
+    assert validate_identifier("TASK-001") == "TASK-001"
+    assert validate_identifier("KEY_01") == "KEY_01"
+    assert validate_identifier("target-123") == "target-123"
+    assert validate_identifier("A") == "A"
+
+    # Invalid identifiers
+    with pytest.raises(ValidationException):
+        validate_identifier("")  # Empty
+
+    with pytest.raises(ValidationException):
+        validate_identifier("   ")  # Blank
+
+    with pytest.raises(ValidationException):
+        validate_identifier("task with spaces")  # Contains spaces
+
+    with pytest.raises(ValidationException):
+        validate_identifier("task@id!")  # Special characters
+
+    with pytest.raises(ValidationException):
+        validate_identifier("a" * 65)  # Too long
+
+
+def test_supervisor_rejects_invalid_identifiers():
+    """Test that supervisor rejects invalid task_id and target_identifier."""
+    supervisor = SystemSupervisor(model_provider="mock")
+
+    # Invalid task_id with spaces
+    with pytest.raises(ValidationException):
+        payload = SystemTaskPayload(
+            task_id="invalid task id",
+            target_identifier="KEY-01",
+            primary_metric=12.0,
+        )
+        supervisor.process_task(payload)
+
+    # Invalid target_identifier with special chars
+    with pytest.raises(ValidationException):
+        payload = SystemTaskPayload(
+            task_id="TASK-01",
+            target_identifier="key@invalid!",
+            primary_metric=12.0,
+        )
+        supervisor.process_task(payload)
+
+
+def test_batch_file_not_found():
+    """Test that batch command handles missing file gracefully."""
+    assert main(["batch", "-i", "nonexistent_file.csv"]) == 1

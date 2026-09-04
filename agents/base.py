@@ -8,6 +8,7 @@ import json
 import time
 import hmac
 import hashlib
+import secrets
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field
@@ -31,6 +32,43 @@ class SecurityException(Exception):
 class ResourceLimitExceededException(Exception):
     """Raised when computational parameters exceed safety bounds."""
     pass
+
+
+class ValidationException(Exception):
+    """Raised when input parameters fail validation checks."""
+    pass
+
+
+# Valid identifier pattern: alphanumeric, hyphens, underscores (1-64 chars)
+IDENTIFIER_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_\-]{0,63}$")
+
+
+def validate_identifier(value: str, field_name: str = "identifier") -> str:
+    """Validate and sanitize an identifier string.
+
+    Args:
+        value: The identifier to validate
+        field_name: Name of the field for error messages
+
+    Returns:
+        The validated identifier
+
+    Raises:
+        ValidationException: If the identifier is invalid
+    """
+    if not value or not isinstance(value, str):
+        raise ValidationException(f"{field_name} must be a non-empty string")
+    stripped = value.strip()
+    if not stripped:
+        raise ValidationException(f"{field_name} must not be blank")
+    if len(stripped) > 64:
+        raise ValidationException(f"{field_name} exceeds maximum length of 64 characters")
+    if not IDENTIFIER_PATTERN.match(stripped):
+        raise ValidationException(
+            f"{field_name} '{stripped}' contains invalid characters. "
+            "Only alphanumeric characters, hyphens, and underscores are allowed."
+        )
+    return stripped
 
 
 def assert_no_phi(text: str) -> None:
@@ -57,7 +95,17 @@ class PHIGuard:
 class AuditTrail:
     """Cryptographic Tamper-Evident HMAC-SHA256 Audit Trail."""
     def __init__(self, secret_key: Optional[str] = None):
-        self.secret_key = (secret_key or os.getenv("AUDIT_SECRET_KEY", "crypto-hardware-accel-aesni-agent-master-audit-key-2026")).encode("utf-8")
+        resolved_key = secret_key or os.getenv("AUDIT_SECRET_KEY")
+        if not resolved_key:
+            import warnings
+            warnings.warn(
+                "AUDIT_SECRET_KEY not set. Using ephemeral key. "
+                "Set AUDIT_SECRET_KEY env var for persistent audit integrity.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            resolved_key = secrets.token_hex(32)
+        self.secret_key = resolved_key.encode("utf-8")
         self.logs: List[Dict[str, Any]] = []
 
     def log(self, actor: str, actor_tier: str, event_type: str, details: Dict[str, Any]) -> Dict[str, Any]:

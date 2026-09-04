@@ -4,7 +4,7 @@ Domain: Post-Quantum Cryptography & Hardware Security
 """
 import uuid
 from typing import Dict, Any, List, Optional
-from .base import AuditLogger, ActionExecutor, PHIGuard
+from .base import AuditLogger, ActionExecutor, PHIGuard, validate_identifier
 from .models import SystemTaskPayload, AgentAlert, ConsensusDossier, UrgencyLevel, SystemIntegrityStatus
 from .workers import InvariantQCWorker, SafetyEscalationWorker, ProtocolConformanceWorker
 from .llm_factory import LLMFactory
@@ -21,6 +21,9 @@ class SystemSupervisor:
         self.dossier_registry: Dict[str, ConsensusDossier] = {}
 
     def process_task(self, payload: SystemTaskPayload, actor: str = "SystemSupervisor") -> ConsensusDossier:
+        # Input validation
+        validate_identifier(payload.task_id, "task_id")
+        validate_identifier(payload.target_identifier, "target_identifier")
         # Zero-PHI outbound validation
         PHIGuard.assert_no_phi(payload.task_id)
         PHIGuard.assert_no_phi(payload.target_identifier)
