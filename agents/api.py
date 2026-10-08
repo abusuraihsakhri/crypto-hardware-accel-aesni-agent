@@ -4,7 +4,7 @@ FastAPI REST API Server for Crypto Hardware Accel Aesni Agent.
 from typing import Dict, Any, List
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from .base import AuditLogger, PHIGuard
+from .base import AuditLogger, PHIGuard, ValidationException
 from .models import SystemTaskPayload, ConsensusDossier
 from .supervisor import SystemSupervisor
 
@@ -37,7 +37,10 @@ def metrics():
 
 @app.post("/api/audit")
 def api_audit(payload: SystemTaskPayload):
-    dossier = supervisor.process_task(payload)
+    try:
+        dossier = supervisor.process_task(payload)
+    except ValidationException as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     return dossier.to_dict()
 
 
