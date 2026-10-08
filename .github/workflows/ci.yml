@@ -26,7 +26,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e '.[server,test]'
 
-    - name: Check browser scripts and heuristic parity tests\n      run: |\n        node --check web/app.mjs\n        node --check web/evaluator.mjs\n        node --test tests/test_web.mjs\n\n    - name: Run Pytest Suite
+    - name: Check browser scripts and heuristic parity tests
+      run: |
+        node --check web/app.mjs
+        node --check web/evaluator.mjs
+        node --test tests/test_web.mjs
+
+    - name: Run Pytest Suite
       run: |
         pytest -v
 
