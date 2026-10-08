@@ -36,3 +36,12 @@ jobs:
           path: web
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Smoke-test published site assets
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          base="${PAGE_URL%/}"
+          curl -fsSL --retry 12 --retry-delay 5 --retry-all-errors "$base/" | grep -q 'Crypto hardware telemetry'
+          curl -fsSL --retry 12 --retry-delay 5 --retry-all-errors "$base/app.mjs" | grep -q 'evaluateTelemetry'
+          curl -fsSL --retry 12 --retry-delay 5 --retry-all-errors "$base/evaluator.mjs" | grep -q 'export function evaluateTelemetry'
