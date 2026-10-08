@@ -24,9 +24,9 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install fastapi uvicorn pydantic pytest
+        pip install -e '.[server,test]'
 
-    - name: Run Pytest Suite
+    - name: Check browser scripts and heuristic parity tests\n      run: |\n        node --check web/app.mjs\n        node --check web/evaluator.mjs\n        node --test tests/test_web.mjs\n\n    - name: Run Pytest Suite
       run: |
         pytest -v
 
