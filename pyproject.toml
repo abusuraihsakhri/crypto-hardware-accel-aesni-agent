@@ -28,7 +28,7 @@ crypto-hardware-accel-aesni-agent = "cli:main"
 crypto-hardware-accel-aesni-engine = "crypto_accel_aesni.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/abusuraihsakhri/crypto-hardware-accel-aesni-engine"
+Homepage = "https://github.com/abusuraihsakhri/crypto-hardware-accel-aesni-agent"
 Repository = "https://github.com/abusuraihsakhri/crypto-hardware-accel-aesni-agent.git"
 
 [tool.setuptools]
