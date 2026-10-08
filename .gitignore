@@ -40,3 +40,4 @@ output.csv
 # OS
 .DS_Store
 Thumbs.db
+\n# Local environment and secrets\n.env\n.env.*\n!.env.example\n
