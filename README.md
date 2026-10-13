@@ -10,7 +10,7 @@ A Python rule-based telemetry evaluator, with a lightweight browser interface, C
 
 Open the [live interface](https://abusuraihsakhri.github.io/crypto-hardware-accel-aesni-agent/), enter task/target identifiers and numerical telemetry, then select **Evaluate locally**. Inspect the JSON result or use **Export JSON**. No server, account, or Python runtime is required.
 
-The browser evaluator mirrors the three threshold/descriptor rules implemented in `agents/workers.py`:
+The browser evaluator mirrors the three threshold/descriptor rules implemented in `agents/workers.py` (the names of output integrity statuses are legacy labels, not certification results):
 
 - Primary metric > 25: elevated-risk alert.
 - Secondary metric > 12: elevated-risk alert; an explicitly selected critical flag creates a critical alert.
@@ -35,9 +35,9 @@ Run the API locally:
 python cli.py serve --host 127.0.0.1 --port 8000
 ```
 
-Endpoints: `GET /health`, `GET /metrics`, `POST /api/audit`, `POST /api/chat`, and `GET /api/audit/logs`. The API has **no built-in authentication**; keep it bound to a trusted interface or add authentication and transport security before any public deployment.
+Endpoints: `GET /health`, `GET /metrics`, `POST /api/audit`, `POST /api/chat`, and `GET /api/audit/logs`. The API has **no built-in authentication**; keep it bound to a trusted interface or add authentication and transport security before any public deployment. Invalid identifiers and recognized sensitive patterns return a validation error rather than an internal server error.
 
-The repository includes a separate compatibility implementation under `crypto_accel_aesni/`, with its own CLI and different thresholds. The published browser UI mirrors `agents/workers.py`, **not** the compatibility implementation.
+The repository includes a separate compatibility implementation under `crypto_accel_aesni/`, with its own CLI: its secondary threshold is **10**, rather than **12** in the primary CLI/browser. Both use a primary threshold of **25**. They are illustrative, not interchangeable cryptographic validators. The published browser UI mirrors `agents/workers.py`, **not** the compatibility implementation.
 
 ## Data handling and security
 
@@ -53,7 +53,9 @@ export AUDIT_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_hex(32
 docker compose up --build
 ```
 
-The `.env.example` file documents the variable; keep the real `.env` outside version control.
+The `.env.example` file documents the variable; keep the real `.env` outside version control. Docker Compose binds the host port to **127.0.0.1** by default rather than exposing the unauthenticated API to external clients.
+
+Batch CSV processing requires distinct `task_id`, `target_identifier`, and `primary_metric` headers. Invalid records are skipped with a warning; only validated records are written. Numeric fields must be finite, and critical flags must be `true`/`false`, `yes`/`no`, or `1`/`0`. CSV output is not sanitized for spreadsheet formula execution; treat imported and exported CSV data as untrusted when opening it in spreadsheet software.
 
 ## Development and tests
 
