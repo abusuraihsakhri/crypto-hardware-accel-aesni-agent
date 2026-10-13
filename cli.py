@@ -7,7 +7,7 @@ import json
 import sys
 from agents.models import SystemTaskPayload
 from agents.supervisor import SystemSupervisor
-from agents.base import AuditLogger
+from agents.base import AuditLogger, ValidationException, SecurityException
 
 supervisor = SystemSupervisor(model_provider="mock")
 
@@ -56,7 +56,7 @@ def main(argv=None):
         dossier = supervisor.process_task(payload)
         print("=" * 80)
         print(f"  CRYPTO HARDWARE ACCEL AESNI AGENT")
-        print(f"  Domain: Post-Quantum Cryptography & Hardware Security | Standard: NIST FIPS 203/204/205 / ISO/IEC 17825 Standards")
+        print(f"  Domain: Post-Quantum Cryptography & Hardware Security | Scope: illustrative telemetry only (not NIST conformance)")
         print(f"  Dossier ID: {dossier.dossier_id} | Urgency: [{dossier.overall_urgency.value}]")
         print("=" * 80)
         for a in dossier.alerts:
@@ -90,6 +90,10 @@ def main(argv=None):
             with open(args.input, mode="r", encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
                 fieldnames = list(reader.fieldnames or [])
+                required_columns = {"task_id", "target_identifier", "primary_metric"}
+                if not required_columns.issubset(fieldnames) or len(fieldnames) != len(set(fieldnames)):
+                    print("Error: CSV requires unique task_id, target_identifier, and primary_metric columns.", file=sys.stderr)
+                    return 1
                 rows = list(reader)
         except (csv.Error, UnicodeDecodeError) as e:
             print(f"Error reading CSV file: {e}", file=sys.stderr)
@@ -98,18 +102,23 @@ def main(argv=None):
             print(f"Error: Permission denied reading '{args.input}'.", file=sys.stderr)
             return 1
 
-        out_fields = fieldnames + ["overall_urgency", "integrity_status", "total_alerts", "audit_hash"]
+        out_fields = list(dict.fromkeys(fieldnames + ["overall_urgency", "integrity_status", "total_alerts", "audit_hash"]))
         out_rows = []
         errors = 0
         for idx, r in enumerate(rows, start=1):
             try:
+                if None in r or any(v is None for v in r.values()):
+                    raise ValueError("CSV row has missing or extra fields")
+                critical_flag = str(r.get("is_critical_flag", "false")).strip().lower()
+                if critical_flag not in ("true", "false", "1", "0", "yes", "no"):
+                    raise ValueError("is_critical_flag must be true/false, yes/no, or 1/0")
                 payload = SystemTaskPayload(
-                    task_id=r.get("task_id", "TASK-01"),
-                    target_identifier=r.get("target_identifier", "TARGET-01"),
-                    primary_metric=float(r.get("primary_metric", 15.0)),
+                    task_id=r["task_id"],
+                    target_identifier=r["target_identifier"],
+                    primary_metric=float(r["primary_metric"]),
                     secondary_metric=float(r.get("secondary_metric", 5.0)),
                     status_descriptor=r.get("status_descriptor", "NOMINAL"),
-                    is_critical_flag=str(r.get("is_critical_flag", "")).lower() in ("true", "1", "yes"),
+                    is_critical_flag=critical_flag in ("true", "1", "yes"),
                 )
                 dossier = supervisor.process_task(payload)
                 row_dict = dict(r)
@@ -118,7 +127,7 @@ def main(argv=None):
                 row_dict["total_alerts"] = dossier.total_alerts
                 row_dict["audit_hash"] = dossier.audit_hash
                 out_rows.append(row_dict)
-            except (ValueError, KeyError) as e:
+            except (ValueError, TypeError, KeyError, ValidationException, SecurityException) as e:
                 print(f"Warning: Skipping row {idx} due to invalid data: {e}", file=sys.stderr)
                 errors += 1
 

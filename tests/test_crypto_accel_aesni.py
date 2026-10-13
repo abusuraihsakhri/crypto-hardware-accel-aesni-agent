@@ -36,7 +36,7 @@ def test_coordinator():
     assert dossier["total_alerts"] == 0
 
     ans = coord.query_supervisory_chat("What standard is applied?")
-    assert "NIST SP 800-38D (AES-GCM)" in ans or "specifications" in ans
+    assert "does not validate" in ans
 
 
 def test_cli():

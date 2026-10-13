@@ -38,3 +38,26 @@ def test_invalid_floating_point_input_rejected(bad):
         SystemTaskPayload(task_id="TASK-01", target_identifier="KEY-01", primary_metric=bad)
     with pytest.raises(ValidationError):
         SystemTaskPayload(task_id="TASK-01", target_identifier="KEY-01", primary_metric=10, secondary_metric=bad)
+
+
+def test_supervisor_normalizes_accepted_identifiers():
+    from agents.supervisor import SystemSupervisor
+
+    payload = SystemTaskPayload(task_id="  TASK-01  ", target_identifier="  KEY-01  ", primary_metric=1)
+    dossier = SystemSupervisor().process_task(payload)
+    assert dossier.task_id == "TASK-01"
+    assert dossier.target_identifier == "KEY-01"
+    assert payload.task_id == "  TASK-01  "
+
+
+def test_concurrent_audit_records_preserve_a_valid_chain():
+    from concurrent.futures import ThreadPoolExecutor
+
+    trail = AuditTrail(secret_key="test-only-secret")
+    with ThreadPoolExecutor(max_workers=12) as executor:
+        list(executor.map(
+            lambda index: trail.log("worker", "test", "RECORD", {"index": index}),
+            range(250),
+        ))
+    assert len(trail.get_trail()) == 250
+    assert trail.verify_integrity()

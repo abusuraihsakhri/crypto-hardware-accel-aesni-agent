@@ -22,8 +22,9 @@ class SystemSupervisor:
 
     def process_task(self, payload: SystemTaskPayload, actor: str = "SystemSupervisor") -> ConsensusDossier:
         # Input validation
-        validate_identifier(payload.task_id, "task_id")
-        validate_identifier(payload.target_identifier, "target_identifier")
+        task_id = validate_identifier(payload.task_id, "task_id")
+        target_identifier = validate_identifier(payload.target_identifier, "target_identifier")
+        payload = payload.model_copy(update={"task_id": task_id, "target_identifier": target_identifier})
         # Zero-PHI outbound validation
         PHIGuard.assert_no_phi(payload.task_id)
         PHIGuard.assert_no_phi(payload.target_identifier)
@@ -78,5 +79,5 @@ class SystemSupervisor:
 
     def query_supervisory_chat(self, query: str) -> str:
         PHIGuard.assert_no_phi(query)
-        prompt = f"Supervisor inquiry for Crypto Hardware Accel Aesni Agent under NIST FIPS 203/204/205 / ISO/IEC 17825 Standards: {query}"
+        prompt = f"Supervisor inquiry for Crypto Hardware Accel Aesni Agent using repository-defined illustrative telemetry rules: {query}"
         return self.llm.invoke(prompt)

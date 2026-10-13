@@ -3,17 +3,28 @@
 const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/;
 const FLAGS = ["DISCORDANT", "ANOMALY", "MUTANT", "VIOLATION", "FAIL", "REJECT"];
 
+function parseMetric(value, label) {
+  // HTML number inputs return strings; empty or whitespace-only values must not become zero.
+  if (typeof value !== "number" &&
+      (typeof value !== "string" ||
+       !/^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i.test(value.trim()))) {
+    throw new Error(`${label} must be a finite decimal number.`);
+  }
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
+    throw new Error(`${label} must be a finite decimal number.`);
+  }
+  return number;
+}
+
 export function evaluateTelemetry(input) {
   const taskId = String(input.task_id ?? "").trim();
   const targetId = String(input.target_identifier ?? "").trim();
   if (!ID_PATTERN.test(taskId) || !ID_PATTERN.test(targetId)) {
     throw new Error("Task and target IDs must contain 1–64 letters, digits, underscores, or hyphens, beginning with a letter or digit.");
   }
-  const primary = Number(input.primary_metric);
-  const secondary = Number(input.secondary_metric);
-  if (!Number.isFinite(primary) || !Number.isFinite(secondary)) {
-    throw new Error("Both numeric metrics must be finite numbers.");
-  }
+  const primary = parseMetric(input.primary_metric, "Primary metric");
+  const secondary = parseMetric(input.secondary_metric, "Secondary metric");
   if (typeof input.is_critical_flag !== "boolean") {
     throw new Error("Critical flag must be a boolean.");
   }

@@ -79,6 +79,10 @@ def main(argv=None):
             with open(args.input, mode="r", encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
                 fieldnames = list(reader.fieldnames or [])
+                required_columns = {"task_id", "target_identifier", "primary_metric"}
+                if not required_columns.issubset(fieldnames) or len(fieldnames) != len(set(fieldnames)):
+                    print("Error: CSV requires unique task_id, target_identifier, and primary_metric columns.", file=sys.stderr)
+                    return 1
                 rows = list(reader)
         except (csv.Error, UnicodeDecodeError) as e:
             print(f"Error reading CSV file: {e}", file=sys.stderr)
@@ -87,18 +91,23 @@ def main(argv=None):
             print(f"Error: Permission denied reading '{args.input}'.", file=sys.stderr)
             return 1
 
-        out_fields = fieldnames + ["overall_status", "total_alerts", "critical_count", "consensus_summary"]
+        out_fields = list(dict.fromkeys(fieldnames + ["overall_status", "total_alerts", "critical_count", "consensus_summary"]))
         out_rows = []
         errors = 0
         for idx, r in enumerate(rows, start=1):
             try:
+                if None in r or any(v is None for v in r.values()):
+                    raise ValueError("CSV row has missing or extra fields")
+                critical_flag = str(r.get("is_critical_flag", "false")).strip().lower()
+                if critical_flag not in ("true", "false", "1", "0", "yes", "no"):
+                    raise ValueError("is_critical_flag must be true/false, yes/no, or 1/0")
                 payload = FrontierPayload(
-                    task_id=r.get("task_id", "TASK-01"),
-                    target_identifier=r.get("target_identifier", "TARGET-01"),
-                    primary_metric=float(r.get("primary_metric", 15.0)),
+                    task_id=r["task_id"],
+                    target_identifier=r["target_identifier"],
+                    primary_metric=float(r["primary_metric"]),
                     secondary_metric=float(r.get("secondary_metric", 5.0)),
                     status_descriptor=r.get("status_descriptor", "NOMINAL"),
-                    is_critical_flag=str(r.get("is_critical_flag", "")).lower() in ("true", "1", "yes"),
+                    is_critical_flag=critical_flag in ("true", "1", "yes"),
                 )
                 dossier = coordinator.process(payload)
                 row_dict = dict(r)

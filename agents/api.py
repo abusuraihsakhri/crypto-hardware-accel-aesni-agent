@@ -4,7 +4,7 @@ FastAPI REST API Server for Crypto Hardware Accel Aesni Agent.
 from typing import Dict, Any, List
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from .base import AuditLogger, PHIGuard, ValidationException
+from .base import AuditLogger, PHIGuard, ValidationException, SecurityException
 from .models import SystemTaskPayload, ConsensusDossier
 from .supervisor import SystemSupervisor
 
@@ -12,7 +12,7 @@ supervisor = SystemSupervisor(model_provider="mock")
 
 app = FastAPI(
     title="Crypto Hardware Accel Aesni Agent API",
-    description="Enterprise Distributed Component Platform (Post-Quantum Cryptography & Hardware Security)",
+    description="Heuristic telemetry assessment; no hardware cryptography or standards certification",
     version="3.0.0-ENTERPRISE",
 )
 
@@ -23,7 +23,7 @@ class ChatRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "HEALTHY", "service": "crypto-hardware-accel-aesni-agent", "domain": "Post-Quantum Cryptography & Hardware Security", "standard": "NIST FIPS 203/204/205 / ISO/IEC 17825 Standards", "version": "3.0.0-ENTERPRISE"}
+    return {"status": "HEALTHY", "service": "crypto-hardware-accel-aesni-agent", "domain": "Post-Quantum Cryptography & Hardware Security", "standard": "Not assessed (illustrative telemetry rules)", "version": "3.0.0-ENTERPRISE"}
 
 
 @app.get("/metrics")
@@ -39,7 +39,7 @@ def metrics():
 def api_audit(payload: SystemTaskPayload):
     try:
         dossier = supervisor.process_task(payload)
-    except ValidationException as exc:
+    except (ValidationException, SecurityException) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return dossier.to_dict()
 
