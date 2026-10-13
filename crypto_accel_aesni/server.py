@@ -15,7 +15,7 @@ def create_app():
 
         app = FastAPI(
             title="AES-NI & ARMv8-CE Hardware Cryptographic Acceleration Auditor",
-            description="Benchmarks and verifies hardware-accelerated AES-GCM and SHA-256 instruction pipelines against software fallback vectors.",
+            description="Evaluates submitted telemetry with example heuristic thresholds; no hardware benchmarking or standards conformance testing.",
             version="2.0.0-FRONTIER",
         )
 
