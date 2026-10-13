@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Crypto Hardware Accel Aesni Engine API",
-    "description": "Enterprise Distributed Component Platform (Clinical & Cryptographic AI) adhering to CAP / CLSI / NIST Standards.",
+    "description": "Rule-based telemetry assessment API; does not benchmark hardware cryptography or assess standards compliance.",
     "version": "3.0.0-ENTERPRISE",
     "contact": {
       "name": "Dr. Abu Suraih Sakhri",
@@ -22,10 +22,10 @@
     },
     "/metrics": {
       "get": {
-        "summary": "Prometheus operational metrics",
+        "summary": "JSON counts for dossiers and audit events",
         "responses": {
           "200": {
-            "description": "Prometheus text metrics"
+            "description": "JSON metric counters and system status"
           }
         }
       }
@@ -69,14 +69,14 @@
         },
         "responses": {
           "200": {
-            "description": "Consensus dossier with HMAC signature"
+            "description": "Heuristic assessment with an in-memory HMAC-chain reference"
           }
         }
       }
     },
     "/api/chat": {
       "post": {
-        "summary": "Air-gapped supervisory conversational assistant",
+        "summary": "Deterministic query-response stub",
         "requestBody": {
           "content": {
             "application/json": {
