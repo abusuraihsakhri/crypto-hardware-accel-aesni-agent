@@ -29,3 +29,11 @@ test("bad identifiers and nonfinite metrics are rejected", () => {
   assert.throws(() => evaluateTelemetry({...base, secondary_metric: NaN}));
   assert.throws(() => evaluateTelemetry({...base, is_critical_flag: "false"}));
 });
+
+test("empty and non-decimal metric values are rejected instead of becoming zero", () => {
+  for (const bad of ["", "  ", null, undefined, "0x20", "1e309", "NaN"]) {
+    assert.throws(() => evaluateTelemetry({...base, primary_metric: bad}), String(bad));
+    assert.throws(() => evaluateTelemetry({...base, secondary_metric: bad}), String(bad));
+  }
+  assert.equal(evaluateTelemetry({...base, primary_metric: "0", secondary_metric: "1.2e1"}).total_alerts, 0);
+});
