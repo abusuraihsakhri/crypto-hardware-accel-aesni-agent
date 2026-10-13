@@ -12,7 +12,7 @@ supervisor = SystemSupervisor(model_provider="mock")
 
 app = FastAPI(
     title="Crypto Hardware Accel Aesni Agent API",
-    description="Enterprise Distributed Component Platform (Post-Quantum Cryptography & Hardware Security)",
+    description="Heuristic telemetry assessment; no hardware cryptography or standards certification",
     version="3.0.0-ENTERPRISE",
 )
 
@@ -23,7 +23,7 @@ class ChatRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "HEALTHY", "service": "crypto-hardware-accel-aesni-agent", "domain": "Post-Quantum Cryptography & Hardware Security", "standard": "NIST FIPS 203/204/205 / ISO/IEC 17825 Standards", "version": "3.0.0-ENTERPRISE"}
+    return {"status": "HEALTHY", "service": "crypto-hardware-accel-aesni-agent", "domain": "Post-Quantum Cryptography & Hardware Security", "standard": "Not assessed (illustrative telemetry rules)", "version": "3.0.0-ENTERPRISE"}
 
 
 @app.get("/metrics")
