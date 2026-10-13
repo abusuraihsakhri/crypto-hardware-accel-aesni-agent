@@ -134,8 +134,8 @@ class AuditTrail:
             return entry
 
     def verify_integrity(self) -> bool:
+        """Check the entire HMAC chain, not just adjacent hash links."""
         with self._lock:
-            """Check the entire HMAC chain, not just adjacent hash links."""
             previous = "GENESIS_BLOCK_0000000000000000"
             required = ("audit_id", "timestamp", "actor", "actor_tier", "event_type",
                         "payload_hash", "prev_hash", "current_hash")
@@ -152,8 +152,8 @@ class AuditTrail:
             return True
 
     def get_trail(self) -> List[Dict[str, Any]]:
+        """Return a detached snapshot so API callers cannot mutate the ledger."""
         with self._lock:
-            """Return a detached snapshot so API callers cannot mutate the ledger."""
             return [dict(entry) for entry in self.logs]
 
 
