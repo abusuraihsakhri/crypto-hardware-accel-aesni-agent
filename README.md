@@ -20,7 +20,7 @@ These are **illustrative inputs and rules**, not clinical or cryptographic accep
 
 ## Python CLI
 
-Python 3.9 or later is required. Install from a checkout:
+Python 3.10 or later is required (the minimum was raised because the patched setuptools build backend requires Python 3.10+). Install from a checkout:
 
 ```bash
 python -m pip install -e ".[server,test]"
