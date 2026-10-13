@@ -55,7 +55,7 @@ docker compose up --build
 
 The `.env.example` file documents the variable; keep the real `.env` outside version control. Docker Compose binds the host port to **127.0.0.1** by default rather than exposing the unauthenticated API to external clients.
 
-Batch CSV processing requires distinct `task_id`, `target_identifier`, and `primary_metric` headers. Invalid records are skipped with a warning; only validated records are written. Numeric fields must be finite, and critical flags must be `true`/`false`, `yes`/`no`, or `1`/`0`. CSV output is not sanitized for spreadsheet formula execution; treat imported and exported CSV data as untrusted when opening it in spreadsheet software.
+Batch CSV processing requires distinct `task_id`, `target_identifier`, and `primary_metric` headers. Invalid records are skipped with a warning; only accepted records are written. The primary CLI validates identifier syntax; the legacy compatibility CLI does not. Numeric fields must be finite, and critical flags must be `true`/`false`, `yes`/`no`, or `1`/`0`. CSV output is not sanitized for spreadsheet formula execution; treat imported and exported CSV data as untrusted when opening it in spreadsheet software.
 
 ## Development and tests
 
