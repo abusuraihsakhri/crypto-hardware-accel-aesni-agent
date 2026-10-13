@@ -7,6 +7,6 @@
   "is_critical_flag": true,
   "attributes": {
     "confidence_ratio": 0.88,
-    "protocol_standard": "NIST SP 800-38D (AES-GCM)"
+    "source_label": "synthetic-example"
   }
 }
