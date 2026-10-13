@@ -22,8 +22,9 @@ class SystemSupervisor:
 
     def process_task(self, payload: SystemTaskPayload, actor: str = "SystemSupervisor") -> ConsensusDossier:
         # Input validation
-        validate_identifier(payload.task_id, "task_id")
-        validate_identifier(payload.target_identifier, "target_identifier")
+        task_id = validate_identifier(payload.task_id, "task_id")
+        target_identifier = validate_identifier(payload.target_identifier, "target_identifier")
+        payload = payload.model_copy(update={"task_id": task_id, "target_identifier": target_identifier})
         # Zero-PHI outbound validation
         PHIGuard.assert_no_phi(payload.task_id)
         PHIGuard.assert_no_phi(payload.target_identifier)
