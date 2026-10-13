@@ -41,6 +41,11 @@ jobs:
       run: |
         python -m pytest -q
 
+    - name: Audit installed Python dependencies
+      run: |
+        python -m pip install 'pip-audit>=2.7,<3'
+        python -m pip_audit --local --skip-editable
+
     - name: Audit-chain integrity smoke test
       run: |
         python -c "
