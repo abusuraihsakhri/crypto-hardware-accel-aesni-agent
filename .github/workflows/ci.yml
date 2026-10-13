@@ -1,4 +1,4 @@
-name: Crypto Hardware Accel Aesni Engine CI/CD & Security Verification
+name: Crypto telemetry CI
 
 on:
   push:
@@ -32,11 +32,16 @@ jobs:
         node --check web/evaluator.mjs
         node --test tests/test_web.mjs
 
+    - name: Check installed dependencies and Python compilation
+      run: |
+        python -m pip check
+        python -m compileall -q agents crypto_accel_aesni cli.py simulator.py enrichment.py
+
     - name: Run Pytest Suite
       run: |
-        pytest -v
+        python -m pytest -q
 
-    - name: Security SAST & Zero-PHI Audit
+    - name: Audit-chain integrity smoke test
       run: |
         python -c "
         from agents.base import PHIGuard, AuditLogger
